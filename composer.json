@@ -1,0 +1,26 @@
+{
+    "name": "chupacabramiamor/lead9connect",
+    "type": "library",
+    "authors": [
+        {
+            "name": "chupacabramiamor",
+            "email": "chupacabramiamor@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "guzzlehttp/guzzle": "^7.0.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "Chupacabramiamor\\Lead9Connect\\": "src"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+              "Chupacabramiamor\\Lead9Connect\\Lead9ConnectServiceProvider"
+            ]
+        }
+    }
+}
