@@ -58,7 +58,7 @@ class Manager
 			}
 
 			if ($command->hasFailure($contents)) {
-				throw new Lead9Exception($contents->message ?? $contents->error ?? null);
+				throw new Lead9Exception($contents->message ?? $contents->error ?? '');
 			}
 
 			if (in_array(ReplaceResponseData::class, $contracts)) {
