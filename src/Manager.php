@@ -4,6 +4,7 @@ namespace Chupacabramiamor\Lead9Connect;
 
 use Chupacabramiamor\Lead9Connect\Contracts\ReplaceResponseData;
 use Chupacabramiamor\Lead9Connect\Contracts\UseCache;
+use Chupacabramiamor\Lead9Connect\Contracts\UsePointer;
 use Chupacabramiamor\Lead9Connect\Exceptions\Lead9Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
@@ -29,14 +30,14 @@ class Manager
 
         $contracts = class_implements($class);
 
-        $data = null;
+        $contents = null;
 
         if (in_array(UseCache::class, $contracts)) {
-            $data = Cache::get($class::configCacheKey());
+            $contents = Cache::get($class::configCacheKey());
         }
 
-        if (!$data) {
-            /** @var AbstractCommand|ReplaceResponseData|UseCache */
+        if (!$contents) {
+            /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
             $command = new $class();
 
             $client = new Client([
@@ -61,16 +62,20 @@ class Manager
                 throw new Lead9Exception($contents->message ?? $contents->error ?? '');
             }
 
+            if (in_array(UsePointer::class, $contracts)) {
+                $contents = $contents->{$command->pointer()} ?? null;
+            }
+
             if (in_array(ReplaceResponseData::class, $contracts)) {
-                $data = $command->replace($contents);
+                $contents = $command->replace($contents);
             }
 
             if (in_array(UseCache::class, $contracts)) {
-                Cache::put($class::configCacheKey(), $data, $class::configCacheTll());
+                Cache::put($class::configCacheKey(), $contents, $class::configCacheTll());
             }
         }
 
-        return $data;
+        return $contents;
     }
 
     private function makeRequest(AbstractCommand $command, array $params = []): Request
