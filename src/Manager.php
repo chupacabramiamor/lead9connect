@@ -15,19 +15,19 @@ class Manager
         private string $endpoint
     ) {}
 
-	/**
-	 * @param string $class
-	 * @param array $params
-	 * @return mixed
-	 * @throws Lead9Exception
-	 */
+    /**
+     * @param string $class
+     * @param array $params
+     * @return mixed
+     * @throws Lead9Exception
+     */
     public function execute(string $class, array $params = []): mixed
     {
         if (!class_exists($class)) {
             throw new Lead9Exception('executing_the_wrong_command');
         }
 
-		$contracts = class_implements($class);
+        $contracts = class_implements($class);
 
         $data = null;
 
@@ -47,27 +47,27 @@ class Manager
 
             $response = $client->send($this->makeRequest($command, $params));
 
-			if ($response->getStatusCode() >= 400) {
-				throw new Lead9Exception();
-			}
+            if ($response->getStatusCode() >= 400) {
+                throw new Lead9Exception();
+            }
 
-			$contents = json_decode(trim($response->getBody()->getContents()));
+            $contents = json_decode(trim($response->getBody()->getContents()));
 
-			if (json_last_error() != JSON_ERROR_NONE) {
-				throw new Lead9Exception('incorrect_data_received');
-			}
+            if (json_last_error() != JSON_ERROR_NONE) {
+                throw new Lead9Exception('incorrect_data_received');
+            }
 
-			if ($command->hasFailure($contents)) {
-				throw new Lead9Exception($contents->message ?? $contents->error ?? '');
-			}
+            if ($command->hasFailure($contents)) {
+                throw new Lead9Exception($contents->message ?? $contents->error ?? '');
+            }
 
-			if (in_array(ReplaceResponseData::class, $contracts)) {
-				$data = $command->replace($contents);
-			}
+            if (in_array(ReplaceResponseData::class, $contracts)) {
+                $data = $command->replace($contents);
+            }
 
-			if (in_array(UseCache::class, $contracts)) {
-				Cache::put($class::configCacheKey(), $data, $class::configCacheTll());
-			}
+            if (in_array(UseCache::class, $contracts)) {
+                Cache::put($class::configCacheKey(), $data, $class::configCacheTll());
+            }
         }
 
         return $data;
@@ -90,15 +90,19 @@ class Manager
 
     private static function getRemoteIp(): ?string
     {
-		$headers = [
-			'HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED',
-			'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR'
-		];
+        $headers = [
+            'HTTP_CLIENT_IP',
+            'HTTP_X_FORWARDED_FOR',
+            'HTTP_X_FORWARDED',
+            'HTTP_FORWARDED_FOR',
+            'HTTP_FORWARDED',
+            'REMOTE_ADDR'
+        ];
 
-		foreach ($headers as $a) {
+        foreach ($headers as $a) {
             if ($ip = getenv($a)) {
-				return $ip;
-			}
+                return $ip;
+            }
         }
 
         return null;
