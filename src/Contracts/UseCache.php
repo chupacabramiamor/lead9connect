@@ -16,5 +16,5 @@ interface UseCache
      *
      * @return int
      */
-    public function configCacheTll(): ?int;
+    public function getCacheTtl(): ?int;
 }
