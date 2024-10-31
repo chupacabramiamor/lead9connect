@@ -18,14 +18,15 @@ class Manager
 
     /**
      * @param string $class
-     * @param array $params
+     * @param array $payload
+     * @param array $options
      * @return mixed
      * @throws Lead9Exception
      */
-    public function execute(string $class, array $params = []): mixed
+    public function execute(string $class, array $payload = [], array $options = []): mixed
     {
         if (!class_exists($class)) {
-            throw new Lead9Exception('executing_the_wrong_command');
+            throw new Lead9Exception('trying_to_execute_wrong_command');
         }
 
         $contracts = class_implements($class);
@@ -38,7 +39,7 @@ class Manager
 
         if (!$contents) {
             /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
-            $command = new $class();
+            $command = new $class($options);
 
             $client = new Client([
                 'timeout'  => 15,
@@ -46,7 +47,7 @@ class Manager
                 'verify'   => false,
             ]);
 
-            $response = $client->send($this->makeRequest($command, $params));
+            $response = $client->send($this->makeRequest($command, $payload));
 
             if ($response->getStatusCode() >= 400) {
                 throw new Lead9Exception();
@@ -71,19 +72,19 @@ class Manager
             }
 
             if (in_array(UseCache::class, $contracts)) {
-                Cache::put($class::configCacheKey(), $contents, $class::configCacheTll());
+                Cache::put($class::configCacheKey(), $contents, $command->configCacheTll());
             }
         }
 
         return $contents;
     }
 
-    private function makeRequest(AbstractCommand $command, array $params = []): Request
+    private function makeRequest(AbstractCommand $command, array $payload = []): Request
     {
-        $query = array_merge($params, [
+        $query = array_merge($payload, [
             'command' => $command->getCommandName(),
             'ip' => static::getRemoteIp() ?: 'UNKNOWN',
-            'comment' => $params['os'] ?? '',
+            'comment' => $payload['os'] ?? '',
         ]);
 
         $headers = [
