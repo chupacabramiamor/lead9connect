@@ -77,7 +77,7 @@ class Manager
             }
 
             if (in_array(UseCache::class, $contracts)) {
-                Cache::put($class::configCacheKey(), $contents);
+                Cache::put($class::configCacheKey(), $contents, $command->getCacheTtl());
             }
         }
 
