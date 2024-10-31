@@ -12,41 +12,49 @@ use Illuminate\Support\Facades\Cache;
 
 class Manager
 {
+    const DROP_CACHE = 1;
+
     public function __construct(
         private string $endpoint
     ) {}
 
     /**
      * @param string $class
-     * @param array $params
+     * @param array $payload
+     * @param int $flags
      * @return mixed
      * @throws Lead9Exception
      */
-    public function execute(string $class, array $params = []): mixed
+    public function execute(string $class, array $payload = [], int $flags = 0): mixed
     {
         if (!class_exists($class)) {
-            throw new Lead9Exception('executing_the_wrong_command');
+            throw new Lead9Exception('trying_to_execute_wrong_command');
         }
 
         $contracts = class_implements($class);
 
+        /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
+        $command = new $class();
+
+        /** @var array|object|null */
         $contents = null;
 
         if (in_array(UseCache::class, $contracts)) {
-            $contents = Cache::get($class::configCacheKey());
+            if (($flags & self::DROP_CACHE) === self::DROP_CACHE ) {
+                Cache::forget($command->configCacheKey());
+            } else {
+                $contents = Cache::get($command->configCacheKey());
+            }
         }
 
         if (!$contents) {
-            /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
-            $command = new $class();
-
             $client = new Client([
                 'timeout'  => 15,
                 'base_uri' => $this->endpoint,
                 'verify'   => false,
             ]);
 
-            $response = $client->send($this->makeRequest($command, $params));
+            $response = $client->send($this->makeRequest($command, $payload));
 
             if ($response->getStatusCode() >= 400) {
                 throw new Lead9Exception();
@@ -59,7 +67,7 @@ class Manager
             }
 
             if ($command->hasFailure($contents)) {
-                throw new Lead9Exception($contents->message ?? $contents->error ?? '');
+                throw new Lead9Exception($class::getErrorMessage($contents) ?: '');
             }
 
             if (in_array(UsePointer::class, $contracts)) {
@@ -71,19 +79,19 @@ class Manager
             }
 
             if (in_array(UseCache::class, $contracts)) {
-                Cache::put($class::configCacheKey(), $contents, $class::configCacheTll());
+                Cache::put($command->configCacheKey(), $contents, $command->getCacheTtl());
             }
         }
 
         return $contents;
     }
 
-    private function makeRequest(AbstractCommand $command, array $params = []): Request
+    private function makeRequest(AbstractCommand $command, array $payload = []): Request
     {
-        $query = array_merge($params, [
+        $query = array_merge($payload, [
             'command' => $command->getCommandName(),
             'ip' => static::getRemoteIp() ?: 'UNKNOWN',
-            'comment' => $params['os'] ?? '',
+            'comment' => $payload['os'] ?? '',
         ]);
 
         $headers = [
