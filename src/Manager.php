@@ -31,16 +31,21 @@ class Manager
 
         $contracts = class_implements($class);
 
+        /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
+        $command = new $class($options);
+
+        /** @var array|object|null */
         $contents = null;
 
         if (in_array(UseCache::class, $contracts)) {
-            $contents = Cache::get($class::configCacheKey());
+            if ($command->option('dropCache')) {
+                Cache::forget($class::configCacheKey());
+            } else {
+                $contents = Cache::get($class::configCacheKey());
+            }
         }
 
         if (!$contents) {
-            /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
-            $command = new $class($options);
-
             $client = new Client([
                 'timeout'  => 15,
                 'base_uri' => $this->endpoint,
@@ -72,7 +77,7 @@ class Manager
             }
 
             if (in_array(UseCache::class, $contracts)) {
-                Cache::put($class::configCacheKey(), $contents, $command->configCacheTll());
+                Cache::put($class::configCacheKey(), $contents);
             }
         }
 
