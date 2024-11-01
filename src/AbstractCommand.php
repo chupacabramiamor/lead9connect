@@ -6,17 +6,12 @@ abstract class AbstractCommand
     protected string $method = 'POST';
 
     public function __construct(
-        protected array $options = []
+        protected int $flags = 0
     ) {}
 
     public function getMethod(): string
     {
         return $this->method;
-    }
-
-    public function option(string $key, $default = null)
-    {
-        return $this->options[$key] ?? $default;
     }
 
     public function getCommandName(): string

@@ -4,6 +4,8 @@ namespace Chupacabramiamor\Lead9Connect\Contracts;
 
 interface UseCache
 {
+    const DROP_CACHE = 1;
+
     /**
      * Повертає назву ключа який відповідає за кешування даних.
      *

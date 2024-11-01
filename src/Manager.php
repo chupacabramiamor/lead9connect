@@ -19,11 +19,11 @@ class Manager
     /**
      * @param string $class
      * @param array $payload
-     * @param array $options
+     * @param int $flags
      * @return mixed
      * @throws Lead9Exception
      */
-    public function execute(string $class, array $payload = [], array $options = []): mixed
+    public function execute(string $class, array $payload = [], int $flags = 0): mixed
     {
         if (!class_exists($class)) {
             throw new Lead9Exception('trying_to_execute_wrong_command');
@@ -32,13 +32,13 @@ class Manager
         $contracts = class_implements($class);
 
         /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
-        $command = new $class($options);
+        $command = new $class($flags);
 
         /** @var array|object|null */
         $contents = null;
 
         if (in_array(UseCache::class, $contracts)) {
-            if ($command->option('dropCache')) {
+            if (($flags & UseCache::DROP_CACHE) === UseCache::DROP_CACHE ) {
                 Cache::forget($class::configCacheKey());
             } else {
                 $contents = Cache::get($class::configCacheKey());
