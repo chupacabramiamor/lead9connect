@@ -9,9 +9,9 @@ abstract class AbstractCommand
         protected int $flags = 0
     ) {}
 
-    public static function getErrorMessage(): ?string
+    public static function getErrorMessage($contents = null): ?string
     {
-        return null;
+        return $contents->message ?? $contents->error ?? null;
     }
 
     public function getMethod(): string

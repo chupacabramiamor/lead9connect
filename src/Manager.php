@@ -72,7 +72,7 @@ class Manager
             }
 
             if ($command->hasFailure($contents)) {
-                throw new Lead9Exception($class::getErrorMessage() ?: $contents->message ?? $contents->error ?? '');
+                throw new Lead9Exception($class::getErrorMessage($contents) ?: '');
             }
 
             if (in_array(UsePointer::class, $contracts)) {
