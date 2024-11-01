@@ -16,6 +16,13 @@ class Manager
         private string $endpoint
     ) {}
 
+    public static function dropCacheFor(string $class): void
+    {
+        if (in_array(UseCache::class, class_implements($class))) {
+            Cache::forget($class::configCacheKey());
+        }
+    }
+
     /**
      * @param string $class
      * @param array $payload
@@ -65,7 +72,7 @@ class Manager
             }
 
             if ($command->hasFailure($contents)) {
-                throw new Lead9Exception($contents->message ?? $contents->error ?? '');
+                throw new Lead9Exception($class::getErrorMessage() ?: $contents->message ?? $contents->error ?? '');
             }
 
             if (in_array(UsePointer::class, $contracts)) {

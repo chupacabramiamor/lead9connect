@@ -9,6 +9,11 @@ abstract class AbstractCommand
         protected int $flags = 0
     ) {}
 
+    public static function getErrorMessage(): ?string
+    {
+        return null;
+    }
+
     public function getMethod(): string
     {
         return $this->method;
