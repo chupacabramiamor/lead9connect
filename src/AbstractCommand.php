@@ -5,19 +5,13 @@ abstract class AbstractCommand
 {
     protected string $method = 'POST';
 
+    public function __construct(
+        private array $data = []
+    ) {}
+
     public static function getErrorMessage($contents = null): ?string
     {
         return $contents->message ?? $contents->error ?? null;
-    }
-
-    /**
-     * Повертає назву ключа який відповідає за кешування даних.
-     *
-     * @return ?string
-     */
-    public function configCacheKey(): ?string
-    {
-        return null;
     }
 
     public function getMethod(): string

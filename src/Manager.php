@@ -34,16 +34,16 @@ class Manager
         $contracts = class_implements($class);
 
         /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
-        $command = new $class();
+        $command = new $class($payload);
 
         /** @var array|object|null */
         $contents = null;
 
         if (in_array(UseCache::class, $contracts)) {
             if (($flags & self::DROP_CACHE) === self::DROP_CACHE ) {
-                Cache::forget($command->configCacheKey());
+                Cache::forget($command->getCacheKey());
             } else {
-                $contents = Cache::get($command->configCacheKey());
+                $contents = Cache::get($command->getCacheKey());
             }
         }
 
@@ -79,7 +79,7 @@ class Manager
             }
 
             if (in_array(UseCache::class, $contracts)) {
-                Cache::put($command->configCacheKey(), $contents, $command->getCacheTtl());
+                Cache::put($command->getCacheKey(), $contents, $command->getCacheTtl());
             }
         }
 
