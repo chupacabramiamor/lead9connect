@@ -6,7 +6,7 @@ abstract class AbstractCommand
     protected string $method = 'POST';
 
     public function __construct(
-        private array $data = []
+        protected array $data = []
     ) {}
 
     public static function getErrorMessage($contents = null): ?string
