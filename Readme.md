@@ -1,5 +1,5 @@
 
-Встановлення
+### Встановлення та налаштування
 
 `composer require chupacabramiamor/lead9connect`
 
