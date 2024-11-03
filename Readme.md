@@ -104,6 +104,6 @@ public static function getErrorMessage($contents = null): ?string
 ```
 public static function getErrorMessage($contents = null): ?string
 {
-    return "Помилка при оброці номеру {$this->options['msisdn']}";
+    return "Помилка при оброці номеру {$this->data['msisdn']}";
 }
 ```
