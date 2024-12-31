@@ -9,6 +9,7 @@ use Chupacabramiamor\Lead9Connect\Exceptions\Lead9Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class Manager
 {
@@ -66,7 +67,8 @@ class Manager
                 throw new Lead9Exception('incorrect_data_received');
             }
 
-            if ($command->hasFailure($contents)) {
+            if ($command::hasFailed($contents)) {
+                Log::error("message", (array) ['payload' => $payload, 'contents' => (array) $contents ]);
                 throw new Lead9Exception($class::getErrorMessage($contents) ?: '');
             }
 

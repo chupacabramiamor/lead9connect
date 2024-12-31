@@ -25,8 +25,14 @@ abstract class AbstractCommand
         return lcfirst(end($segments));
     }
 
+    /** @deprecated */
 	public function hasFailure($contents): bool
 	{
 		return empty($contents->success);
 	}
+
+    public static function hasFailed($contents): bool
+    {
+        return empty($contents->success);
+    }
 }
