@@ -19,6 +19,11 @@ class Manager
         private string $endpoint
     ) {}
 
+    public function flushCache(UseCache $command)
+    {
+        Cache::forget($command->getCacheKey());
+    }
+
     /**
      * @param string $class
      * @param array $payload
@@ -42,7 +47,7 @@ class Manager
 
         if (in_array(UseCache::class, $contracts)) {
             if (($flags & self::DROP_CACHE) === self::DROP_CACHE ) {
-                Cache::forget($command->getCacheKey());
+                $this->flushCache($command);
             } else {
                 $contents = Cache::get($command->getCacheKey());
             }
