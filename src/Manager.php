@@ -98,7 +98,7 @@ class Manager
         $query = array_merge($payload, [
             'command' => $command->getCommandName(),
             'ip' => static::getRemoteIp() ?: 'UNKNOWN',
-            'comment' => $payload['os'] ?? '',
+            'comment' => $payload['comment'] ?? $payload['os'] ?? '',
         ]);
 
         $headers = [
