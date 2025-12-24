@@ -37,10 +37,14 @@ class Manager
             throw new Lead9Exception('trying_to_execute_wrong_command');
         }
 
-        $contracts = class_implements($class);
-
         /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
         $command = new $class($payload);
+
+        if (!$command->verify()) {
+            throw new Lead9Exception('not_allowed_to_execute');
+        }
+
+        $contracts = class_implements($class);
 
         /** @var array|object|null */
         $contents = null;

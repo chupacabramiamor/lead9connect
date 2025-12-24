@@ -25,6 +25,11 @@ abstract class AbstractCommand
         return lcfirst(end($segments));
     }
 
+    public function verify(): bool
+    {
+        return true;
+    }
+
     /** @deprecated */
 	public function hasFailure($contents): bool
 	{
