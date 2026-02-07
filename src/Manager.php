@@ -64,7 +64,7 @@ class Manager
                 'verify'   => false,
             ]);
 
-            $response = $client->send($this->makeRequest($command, $payload));
+            $response = $client->send($this->makeRequest($command, $command->getData()));
 
             if ($response->getStatusCode() >= 400) {
                 throw new Lead9Exception();
@@ -77,7 +77,7 @@ class Manager
             }
 
             if ($command::hasFailed($contents)) {
-                Log::error("message", (array) ['payload' => $payload, 'contents' => (array) $contents ]);
+                Log::error("message", (array) ['payload' => $command->getData(), 'contents' => (array) $contents ]);
                 throw new Lead9Exception($class::getErrorMessage($contents) ?: '');
             }
 

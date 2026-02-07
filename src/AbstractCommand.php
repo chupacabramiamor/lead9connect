@@ -5,9 +5,21 @@ abstract class AbstractCommand
 {
     protected string $method = 'POST';
 
-    public function __construct(
-        protected array $data = []
-    ) {}
+    protected array $data = [];
+
+    public function __construct(array $data = []) {
+        $this->data = array_merge($this->initialData(), $data);
+    }
+
+    public static function initialData(): array
+    {
+        return [];
+    }
+
+    public static function hasFailed($contents): bool
+    {
+        return empty($contents->success);
+    }
 
     public static function getErrorMessage($contents = null): ?string
     {
@@ -25,6 +37,11 @@ abstract class AbstractCommand
         return lcfirst(end($segments));
     }
 
+    public function getData(): array
+    {
+        return $this->data;
+    }
+
     public function verify(): bool
     {
         return true;
@@ -35,9 +52,4 @@ abstract class AbstractCommand
 	{
 		return empty($contents->success);
 	}
-
-    public static function hasFailed($contents): bool
-    {
-        return empty($contents->success);
-    }
 }
