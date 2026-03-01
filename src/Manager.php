@@ -34,13 +34,17 @@ class Manager
     public function execute(string $class, array $payload = [], int $flags = 0): mixed
     {
         if (!class_exists($class)) {
+            Log::warning('Command class does not exist', ['class' => $class]);
             throw new Lead9Exception('trying_to_execute_wrong_command');
         }
+
+        Log::debug('Executing command', ['class' => $class, 'payload' => $payload]);
 
         /** @var AbstractCommand|ReplaceResponseData|UseCache|UsePointer */
         $command = new $class($payload);
 
         if (!$command->verify()) {
+            Log::warning('Command verification failed', ['class' => $class, 'payload' => $payload]);
             throw new Lead9Exception('not_allowed_to_execute');
         }
 
@@ -51,13 +55,21 @@ class Manager
 
         if (in_array(UseCache::class, $contracts)) {
             if (($flags & self::DROP_CACHE) === self::DROP_CACHE ) {
+                Log::info('Flushing cache', ['cache_key' => $command->getCacheKey()]);
                 $this->flushCache($command);
             } else {
                 $contents = Cache::get($command->getCacheKey());
+                if ($contents) {
+                    Log::info('Cache hit', ['class' => $class, 'cache_key' => $command->getCacheKey()]);
+                } else {
+                    Log::debug('Cache miss', ['class' => $class, 'cache_key' => $command->getCacheKey()]);
+                }
             }
         }
 
         if (!$contents) {
+            Log::debug('Making API request', ['class' => $class, 'command' => $command->getCommandName()]);
+
             $client = new Client([
                 'timeout'  => 15,
                 'base_uri' => $this->endpoint,
@@ -67,12 +79,18 @@ class Manager
             $response = $client->send($this->makeRequest($command, $command->getData()));
 
             if ($response->getStatusCode() >= 400) {
+                Log::error('API request failed', ['class' => $class, 'status' => $response->getStatusCode()]);
                 throw new Lead9Exception();
             }
 
             $contents = json_decode(trim($response->getBody()->getContents()));
 
             if (json_last_error() != JSON_ERROR_NONE) {
+                Log::error('JSON decode error', [
+                    'class' => $class,
+                    'error' => json_last_error_msg(),
+                    'response' => $response->getBody()->getContents()
+                ]);
                 throw new Lead9Exception('incorrect_data_received');
             }
 
@@ -91,9 +109,11 @@ class Manager
 
             if (in_array(UseCache::class, $contracts)) {
                 Cache::put($command->getCacheKey(), $contents, $command->getCacheTtl());
+                Log::debug('Cached response', ['class' => $class, 'cache_key' => $command->getCacheKey(), 'ttl' => $command->getCacheTtl()]);
             }
         }
 
+        Log::info('Command executed successfully', ['class' => $class]);
         return $contents;
     }
 
