@@ -129,7 +129,7 @@ class Manager
             'Content-Type' => 'application/x-www-form-urlencoded'
         ];
 
-        return new Request($command->getMethod(), '', $headers, http_build_query($query));
+        return new Request($command->getMethod(), '', $headers, urldecode(http_build_query($query)));
     }
 
     private static function getRemoteIp(): ?string
