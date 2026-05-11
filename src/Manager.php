@@ -10,6 +10,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Contracts\Support\Arrayable;
 
 class Manager
 {
@@ -26,13 +27,17 @@ class Manager
 
     /**
      * @param string $class
-     * @param array $payload
+     * @param Arrayable|array $payload
      * @param int $flags
      * @return mixed
      * @throws Lead9Exception
      */
-    public function execute(string $class, array $payload = [], int $flags = 0): mixed
+    public function execute(string $class, Arrayable|array $payload = [], int $flags = 0): mixed
     {
+        if ($payload instanceof Arrayable) {
+            $payload = $payload->toArray();
+        }
+
         if (!class_exists($class)) {
             Log::warning('Command class does not exist', ['class' => $class]);
             throw new Lead9Exception('trying_to_execute_wrong_command');
